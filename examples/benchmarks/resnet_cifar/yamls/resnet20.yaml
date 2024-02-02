@@ -5,12 +5,12 @@ max_duration: 160ep                      # Duration to train specified as a Time
 use_recipe: false                        # Whether to train with a recipe for faster convergence or higher accuracy
 device_train_microbatch_size: auto       # Size of microbatch, 'auto' means Composer will choose the optimal value
 clipping_type: norm                      # Type of gradient clipping, 'norm' or 'value'
-clipping_threshold: 1.0                  # Threshold for gradient clipping
+clipping_threshold: 0.1                  # Threshold for gradient clipping
 
 train_dataset:
   path: cifar10
   is_streaming: false # Set to `true` if your data is in a remote location (e.g. an S3 bucket)
-  batch_size: 1024    # Training dataloader batch size per device
+  batch_size: 256    # Training dataloader batch size per device
   local:              # Local cache location when streaming data
   download: true      # Whether to download the data
 
@@ -22,7 +22,7 @@ eval_dataset:
   download: true      # Whether to download the data
 
 model:
-  name: resnet_56 # Name of the CIFAR ResNet model to train either 'resnet_56' or 'resnet_20'
+  name: resnet_20 # Name of the CIFAR ResNet model to train either 'resnet_56' or 'resnet_20'
   num_classes: 10 # Number of classes in the classification task
 
 optimizer:
@@ -32,7 +32,7 @@ optimizer:
 
 lr_scheduler:
   t_warmup: 5ep # Duration of learning rate warmup specified as a Time string
-  milestones:   # Epochs to decay the learning rate by gammA
+  milestones:   # Epochs to decay the learning rate by gamma
   - 80ep
   - 120ep
   gamma: 0.1    # Multiplier to learning rate when decaying

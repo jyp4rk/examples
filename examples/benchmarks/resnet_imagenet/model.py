@@ -7,12 +7,15 @@ from composer.metrics import CrossEntropy
 from composer.models import ComposerClassifier
 from torchmetrics import MetricCollection
 from torchmetrics.classification import MulticlassAccuracy
-from torchvision.models import resnet
+import resnet
+from polyact import aespa, PolyAct, PolyActPerChannel
 
 
-def build_composer_resnet(model_name: str = 'resnet50',
-                          loss_name: str = 'cross_entropy',
-                          num_classes: int = 1000):
+def build_composer_resnet(
+    model_name: str = "resnet50",
+    loss_name: str = "cross_entropy",
+    num_classes: int = 1000,
+):
     """Helper function to build a Composer ResNet model.
 
     Args:
@@ -30,28 +33,28 @@ def build_composer_resnet(model_name: str = 'resnet50',
         if isinstance(w, torch.nn.Linear) or isinstance(w, torch.nn.Conv2d):
             torch.nn.init.kaiming_normal_(w.weight)
         if isinstance(w, torch.nn.BatchNorm2d):
-            w.weight.data = torch.rand(w.weight.data.shape)
-            w.bias.data = torch.zeros_like(w.bias.data)
+            if w.affine:
+                w.weight.data = torch.rand(w.weight.data.shape)
+                w.bias.data = torch.zeros_like(w.bias.data)
         # When using binary cross entropy, set the classification layer bias to -log(num_classes)
         # to ensure the initial probabilities are approximately 1 / num_classes
-        if loss_name == 'binary_cross_entropy' and isinstance(
-                w, torch.nn.Linear):
-            w.bias.data = torch.ones(
-                w.bias.shape) * -torch.log(torch.tensor(w.bias.shape[0]))
+        if loss_name == "binary_cross_entropy" and isinstance(w, torch.nn.Linear):
+            w.bias.data = torch.ones(w.bias.shape) * -torch.log(
+                torch.tensor(w.bias.shape[0])
+            )
 
     model.apply(weight_init)
 
     # Performance metrics to log other than training loss
-    train_metrics = MulticlassAccuracy(num_classes=num_classes, average='micro')
-    val_metrics = MetricCollection([
-        CrossEntropy(),
-        MulticlassAccuracy(num_classes=num_classes, average='micro')
-    ])
+    train_metrics = MulticlassAccuracy(num_classes=num_classes, average="micro")
+    val_metrics = MetricCollection(
+        [CrossEntropy(), MulticlassAccuracy(num_classes=num_classes, average="micro")]
+    )
 
     # Choose loss function: either cross entropy or binary cross entropy
-    if loss_name == 'cross_entropy':
+    if loss_name == "cross_entropy":
         loss_fn = soft_cross_entropy
-    elif loss_name == 'binary_cross_entropy':
+    elif loss_name == "binary_cross_entropy":
         loss_fn = binary_cross_entropy_with_logits
     else:
         raise ValueError(
@@ -59,8 +62,7 @@ def build_composer_resnet(model_name: str = 'resnet50',
         )
 
     # Wrapper function to convert a image classification PyTorch model into a Composer model
-    composer_model = ComposerClassifier(model,
-                                        train_metrics=train_metrics,
-                                        val_metrics=val_metrics,
-                                        loss_fn=loss_fn)
+    composer_model = ComposerClassifier(
+        model, train_metrics=train_metrics, val_metrics=val_metrics, loss_fn=loss_fn
+    )
     return composer_model

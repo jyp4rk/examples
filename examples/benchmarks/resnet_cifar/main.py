@@ -4,6 +4,7 @@
 import os
 import sys
 from typing import Dict
+from momo import Momo, MomoAdam
 
 # Add folder root to path to allow us to use relative imports regardless of what directory the script is run from
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
@@ -18,6 +19,8 @@ from composer.loggers import ProgressBarLogger, WandBLogger
 from composer.optim import DecoupledSGDW, MultiStepWithWarmupScheduler
 from composer.utils import dist, reproducibility
 from omegaconf import DictConfig, OmegaConf
+from composer.algorithms import GradientClipping
+
 
 
 def log_config(cfg: DictConfig):
@@ -100,6 +103,8 @@ def main(config):
                               lr=config.optimizer.lr,
                               momentum=config.optimizer.momentum,
                               weight_decay=config.optimizer.weight_decay)
+    # import torch.optim as optim
+    # optimizer = optim.AdamW(model.parameters(), lr=config.optimizer.lr, weight_decay=config.optimizer.weight_decay)
 
     lr_scheduler = MultiStepWithWarmupScheduler(
         t_warmup=config.lr_scheduler.t_warmup,
@@ -115,11 +120,24 @@ def main(config):
     memory_monitor = MemoryMonitor()  # Logs memory utilization
     print('Built Speed, LR, and Memory monitoring callbacks\n')
 
+    # training regime 1
+    gc = GradientClipping(clipping_type=config.clipping_type,
+                          clipping_threshold=config.clipping_threshold)
+    # training regime 2
+    from composer.algorithms import SelectiveBackprop
+    sb = SelectiveBackprop(start=0.5, end=0.9, keep=0.5)
+
+    from composer.algorithms import GhostBatchNorm
+    ghostbn = GhostBatchNorm(ghost_batch_size=32)
+
+    from composer.algorithms import LayerFreezing
+    lf = LayerFreezing(freeze_start=0.1, freeze_level=1.0)
+
     print('Building algorithm recipes')
     if config.use_recipe:
         algorithms = [BlurPool(), ChannelsLast(), LabelSmoothing(), MixUp()]
     else:
-        algorithms = None
+        algorithms = [BlurPool(),  ChannelsLast(), LabelSmoothing(), ghostbn, gc, lf]
     print('Built algorithm recipes\n')
 
     loggers = [

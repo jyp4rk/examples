@@ -144,3 +144,17 @@ dmypy.json
 
 # macOS
 .DS_Store
+examples/benchmarks/resnet_cifar/cifar10/cifar-10-batches-py/batches.meta
+examples/benchmarks/resnet_cifar/cifar10/cifar-10-batches-py/data_batch_1
+examples/benchmarks/resnet_cifar/cifar10/cifar-10-batches-py/data_batch_2
+examples/benchmarks/resnet_cifar/cifar10/cifar-10-batches-py/data_batch_3
+examples/benchmarks/resnet_cifar/cifar10/cifar-10-batches-py/data_batch_4
+examples/benchmarks/resnet_cifar/cifar10/cifar-10-batches-py/data_batch_5
+examples/benchmarks/resnet_imagenet/resnet.py.bak
+examples/benchmarks/resnet_imagenet/r18_i1k_baseline/ckpt/ep100-ba62500-rank0.pt
+examples/benchmarks/resnet_imagenet/r18_i1k_baseline/ckpt/latest-rank0.pt
+examples/benchmarks/resnet_imagenet/r50_i1k_baseline/ckpt/ep69-ba43136-rank0.pt
+examples/benchmarks/resnet_imagenet/r50_i1k_baseline/ckpt/latest-rank0.pt
+examples/benchmarks/resnet_cifar/cifar10/cifar-10-python.tar.gz
+examples/benchmarks/resnet_cifar/cifar10/cifar-10-batches-py/readme.html
+examples/benchmarks/resnet_cifar/cifar10/cifar-10-batches-py/test_batch

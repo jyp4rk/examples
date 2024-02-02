@@ -138,6 +138,14 @@ def main(config):
 
     # Recipes for training ResNet architectures on ImageNet in order of increasing training time and accuracy
     # To learn about individual methods, check out "Methods Overview" in our documentation: https://docs.mosaicml.com/
+    # training regime 1
+    from composer.algorithms import GradientClipping
+    gc = GradientClipping(clipping_type='norm',
+                          clipping_threshold=1.0)
+    # training regime 2
+    from composer.algorithms import GhostBatchNorm
+    ghostbn = GhostBatchNorm(ghost_batch_size=32)
+
     print('Building algorithm recipes')
     if config.recipe_name == 'mild':
         algorithms = [
@@ -160,6 +168,8 @@ def main(config):
             LabelSmoothing(smoothing=0.1),
             MixUp(alpha=0.2),
             SAM(rho=0.5, interval=10),
+            ghostbn,
+            gc,
         ]
     elif config.recipe_name == 'hot':
         algorithms = [
@@ -174,6 +184,8 @@ def main(config):
             SAM(rho=0.5, interval=5),
             ColOut(p_col=0.05, p_row=0.05),
             RandAugment(depth=1, severity=9),
+            ghostbn,
+            gc,
             StochasticDepth(target_layer_name='ResNetBottleneck',
                             stochastic_method='sample',
                             drop_distribution='linear',
